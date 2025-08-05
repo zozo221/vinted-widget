@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dressing Vinted - pourtous.projet</title>
+  <style>
+    body { font-family: sans-serif; background: #fff; margin: 20px; }
+    .vinted-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+    .item { width: 160px; text-align: center; text-decoration: none; color: #000; }
+    .item img { width: 100%; height: auto; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
+    .item p { font-size: 14px; margin: 6px 0 0; }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;">Mon dressing Vinted</h1>
+  <div class="vinted-grid" id="vinted-dressing"></div>
+
+  <script>
+    const pseudo = "pourtous.projet";
+    fetch(`https://api.vinted.fr/v2/users/${pseudo}/items?per_page=20`)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("vinted-dressing");
+        if (!data.items) {
+          container.innerHTML = "<p>Impossible de charger le dressing Vinted.</p>";
+          return;
+        }
+        data.items.forEach(item => {
+          const a = document.createElement("a");
+          a.href = "https://www.vinted.fr" + item.path;
+          a.target = "_blank";
+          a.className = "item";
+          a.innerHTML = `
+            <img src="${item.photo.url}" alt="${item.title}">
+            <p>${item.title}<br><strong>${item.price} €</strong></p>
+          `;
+          container.appendChild(a);
+        });
+      })
+      .catch(err => {
+        document.getElementById("vinted-dressing").innerHTML = "<p>Erreur lors du chargement.</p>";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
