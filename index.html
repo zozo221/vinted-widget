@@ -2,13 +2,13 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Mon dressing Vinted</title>
+  <title>Dressing Vinted – pourtous.projet</title>
   <style>
-    body { font-family: sans-serif; text-align: center; }
-    .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
-    .item { width: 160px; text-decoration: none; color: black; }
+    body { font-family: sans-serif; background: #fff; margin: 20px; text-align: center; }
+    .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 20px; }
+    .item { width: 160px; text-decoration: none; color: #000; }
     .item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
-    .item p { margin: 8px 0 0; font-size: 14px; }
+    .item p { font-size: 14px; margin: 6px 0 0; }
   </style>
 </head>
 <body>
@@ -17,27 +17,28 @@
 
   <script>
     const username = "pourtous.projet";
-    const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.vinted.fr/v/' + username)}`;
+    const url = `https://www.vinted.fr/v/${username}`;
 
-    fetch(apiUrl)
+    fetch("https://api.allorigins.win/get?url=" + encodeURIComponent(url))
       .then(response => response.json())
       .then(data => {
-        const html = data.contents;
         const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const items = [...doc.querySelectorAll("a.item-box")].slice(0, 20);
-        const container = document.getElementById("dressing");
+        const doc = parser.parseFromString(data.contents, "text/html");
+        const articles = doc.querySelectorAll("div.feed-grid__item");
 
-        if (items.length === 0) {
+        const container = document.getElementById("dressing");
+        if (articles.length === 0) {
           container.innerHTML = "<p>Aucun article trouvé.</p>";
           return;
         }
 
-        items.forEach(item => {
-          const link = "https://www.vinted.fr" + item.getAttribute("href");
-          const img = item.querySelector("img").getAttribute("src");
-          const title = item.querySelector(".title").textContent.trim();
-          const price = item.querySelector(".price").textContent.trim();
+        articles.forEach(article => {
+          const link = article.querySelector("a").href;
+          const img = article.querySelector("img")?.src;
+          const title = article.querySelector(".item-box__title")?.textContent?.trim() || "Article";
+          const price = article.querySelector(".item-box__formatted-price")?.textContent?.trim() || "";
+
+          if (!img || !link) return;
 
           container.innerHTML += `
             <a class="item" href="${link}" target="_blank">
@@ -46,9 +47,9 @@
             </a>`;
         });
       })
-      .catch(error => {
+      .catch(err => {
         document.getElementById("dressing").innerHTML = "<p>Erreur lors du chargement.</p>";
-        console.error(error);
+        console.error(err);
       });
   </script>
 </body>
