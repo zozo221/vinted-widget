@@ -2,44 +2,53 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Dressing Vinted - pourtous.projet</title>
+  <title>Mon dressing Vinted</title>
   <style>
-    body { font-family: sans-serif; background: #fff; margin: 20px; }
-    .vinted-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
-    .item { width: 160px; text-align: center; text-decoration: none; color: #000; }
-    .item img { width: 100%; height: auto; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
-    .item p { font-size: 14px; margin: 6px 0 0; }
+    body { font-family: sans-serif; text-align: center; }
+    .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
+    .item { width: 160px; text-decoration: none; color: black; }
+    .item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
+    .item p { margin: 8px 0 0; font-size: 14px; }
   </style>
 </head>
 <body>
-  <h1 style="text-align:center;">Mon dressing Vinted</h1>
-  <div class="vinted-grid" id="vinted-dressing"></div>
+  <h1>Mon dressing Vinted</h1>
+  <div class="grid" id="dressing"></div>
 
   <script>
-    const pseudo = "pourtous.projet";
-    fetch(`https://api.vinted.fr/v2/users/${pseudo}/items?per_page=20`)
-      .then(res => res.json())
+    const username = "pourtous.projet";
+    const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.vinted.fr/v/' + username)}`;
+
+    fetch(apiUrl)
+      .then(response => response.json())
       .then(data => {
-        const container = document.getElementById("vinted-dressing");
-        if (!data.items) {
-          container.innerHTML = "<p>Impossible de charger le dressing Vinted.</p>";
+        const html = data.contents;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const items = [...doc.querySelectorAll("a.item-box")].slice(0, 20);
+        const container = document.getElementById("dressing");
+
+        if (items.length === 0) {
+          container.innerHTML = "<p>Aucun article trouvé.</p>";
           return;
         }
-        data.items.forEach(item => {
-          const a = document.createElement("a");
-          a.href = "https://www.vinted.fr" + item.path;
-          a.target = "_blank";
-          a.className = "item";
-          a.innerHTML = `
-            <img src="${item.photo.url}" alt="${item.title}">
-            <p>${item.title}<br><strong>${item.price} €</strong></p>
-          `;
-          container.appendChild(a);
+
+        items.forEach(item => {
+          const link = "https://www.vinted.fr" + item.getAttribute("href");
+          const img = item.querySelector("img").getAttribute("src");
+          const title = item.querySelector(".title").textContent.trim();
+          const price = item.querySelector(".price").textContent.trim();
+
+          container.innerHTML += `
+            <a class="item" href="${link}" target="_blank">
+              <img src="${img}" alt="${title}">
+              <p>${title}<br><strong>${price}</strong></p>
+            </a>`;
         });
       })
-      .catch(err => {
-        document.getElementById("vinted-dressing").innerHTML = "<p>Erreur lors du chargement.</p>";
-        console.error(err);
+      .catch(error => {
+        document.getElementById("dressing").innerHTML = "<p>Erreur lors du chargement.</p>";
+        console.error(error);
       });
   </script>
 </body>
